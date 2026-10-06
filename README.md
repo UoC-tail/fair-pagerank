@@ -4,6 +4,14 @@ This repository contains the implementation of fairness-aware link recommendatio
 
 ## Installation
 
+### Requirements
+
+- Python 3.10 or newer
+- uv for environment and dependency management
+- Git
+
+Clone the repository and install all required dependencies:
+
 ```sh
 git clone https://github.com/UoC-tail/fair-pagerank.git
 cd fair-pagerank
