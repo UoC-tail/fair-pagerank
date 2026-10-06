@@ -7,7 +7,7 @@ This repository contains the implementation of fairness-aware link recommendatio
 ### Requirements
 
 - Python 3.10 or newer
-- uv for environment and dependency management
+- `uv` for environment and dependency management
 - Git
 
 Clone the repository and install all required dependencies:
@@ -18,16 +18,20 @@ cd fair-pagerank
 uv sync
 ```
 
-All linear programs use the open-source HiGHS solver. Gurobi is optional (`uv sync --extra gurobi`, then `--solver GUROBI`).
+`uv sync` creates the project environment and installs the dependencies specified by the project.
+
+All linear programs use the open-source HiGHS solver by default. Optionally, Gurobi can be used as an alternative solver (`uv sync --extra gurobi`, then `--solver GUROBI` for usage). A suitable Gurobi installation and license are required. 
 
 ## Data and Results
 
-- **Datasets** are downloaded to `./data/` when first needed. Tolokers and Pokec are rebuilt from their original public sources.
-- **Results** are saved to `./results/<dataset>/<experiment>.csv`.
+- **Datasets** are downloaded to `./data/` when first needed. The available datasets are `blogs`, `tolokers`, `pokec`, `twitter`, `github_female`, `github_male`, and `nba`. Tolokers and Pokec are rebuilt from their original public sources.
+- **Results** are saved for each `<dataset>` to `./results/<dataset>/<experiment>.csv`.
 
-Both directories are created automatically and can be changed with `--data-dir` and `--results-dir`.
+Both directories are created automatically and can be changed with `--data-dir <path>` and `--results-dir <path>`.
 
 ## Usage
+
+Each experiment can be run through the command-line interface:
 
 ```sh
 uv run fair-pagerank <experiment> --dataset <dataset>
@@ -37,8 +41,8 @@ Datasets: `blogs`, `tolokers`, `pokec`, `twitter`, `github_female`, `github_male
 
 ### Available Experiments
 
-- `local`: target-group mass after adding up to `b` edges per source (static greedy, greedy FREC+, policy iteration)
-- `global`: target-group mass after adding exactly `B` edges in total (gain ranking, relaxed QCLP, random subset)
+- `local`: target-group mass after adding up to `b` edges per source (comparing static greedy, greedy FREC+, policy iteration)
+- `global`: target-group mass after adding exactly `B` edges in total (comparing gain ranking, relaxed QCLP, random subset)
 - `controls`: trivial and generic recommenders
 - `seeds`: variability across source samples
 - `ablation`: contribution of the dangling-source gain and of policy iteration
@@ -48,9 +52,15 @@ Datasets: `blogs`, `tolokers`, `pokec`, `twitter`, `github_female`, `github_male
 - `stats`: dataset and policy-iteration statistics
 - `conventions`: alternative dangling-node conventions
 
-`uv run fair-pagerank <experiment> --help` lists the options. Run `parity` and `stats` with `OPENBLAS_NUM_THREADS=1` to reproduce the paper's values exactly.
+For a list of all available options for an experiment, run:
+
+`uv run fair-pagerank <experiment> --help` 
+
+Run `parity` and `stats` with `OPENBLAS_NUM_THREADS=1` to reproduce the paper's values exactly.
 
 ### Computing Through Code
+
+The following Python code loads the `blogs` dataset, samples source nodes, generates candidate edges within four hops, and computes policy-optimal recommendations under a local budget of 10 edges per source node.
 
 ```python
 import numpy as np
@@ -72,7 +82,14 @@ print(f"F before: {group_mass(pagerank(adj, 0.85, tel), mask):.3f}")  # 0.334
 print(f"F after:  {mass_after_flip(adj, edges, mask, 0.85, tel):.3f}")  # 0.477
 ```
 
-## Structure and Extensibility
+For the example above, the initial and final target-group PageRank masses are approximately:
+
+F before: 0.334  
+F after: 0.477
+
+## Repository Structure and Extensibility
+
+The main source code is located in `src/fair_pagerank/`:
 
 ```
 src/fair_pagerank/
@@ -90,8 +107,8 @@ src/fair_pagerank/
 └── experiments/      one module per experiment
 ```
 
-- **Custom datasets**: register a loader in `datasets/registry.py`.
-- **Custom experiments**: add a module with `add_arguments(parser)` and `run(args)` to `experiments/` and register it in `experiments/__init__.py`.
+- To add a **custom dataset**, register a loader in `datasets/registry.py`. The loader should provide the graph, target-group mask, teleport vector, and the other information expected by the dataset interface.
+- To add a **custom experiment**, create a module in `src/fair_pagerank/experiments/` with `add_arguments(parser)` and `run(args)` and register it in `src/fair_pagerank/experiments/__init__.py`.
 
 ## Citation
 
