@@ -1,0 +1,66 @@
+[project]
+name = "fair-pagerank"
+version = "1.0.0"
+description = "Optimal link recommendations under local budgets for PageRank fairness (LoG 2026)"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.11"
+authors = [
+    { name = "Asli Tugce Ünüvar" },
+    { name = "Simone Antonelli" },
+    { name = "Aleksandar Bojchevski" },
+]
+dependencies = [
+    "numpy>=2.0",
+    "scipy>=1.13",
+    "pandas>=2.2",
+    "cvxpy>=1.7",
+    "numba>=0.60",
+    "joblib>=1.4",
+    "tqdm>=4.66",
+    # Policy iteration / relaxed QCLP of Bojchevski & Günnemann (NeurIPS 2019),
+    # pinned to the commit used for the paper.
+    "graph-cert @ git+https://github.com/abojchevski/graph_cert.git@7c7048813dde32c49e2e66c7ee8cc0701b048a58",
+]
+
+[project.optional-dependencies]
+gurobi = ["gurobipy>=12.0.3"]
+
+[project.scripts]
+fair-pagerank = "fair_pagerank.cli:main"
+
+[tool.uv]
+# Lock the numerical stack to the versions the paper's results were computed
+# with, so that `uv sync` reproduces them to solver precision.
+constraint-dependencies = [
+    "numpy==2.4.4",
+    "scipy==1.17.1",
+    "cvxpy==1.8.2",
+    "clarabel==0.11.1",
+    "highspy==1.14.0",
+    "osqp==1.1.1",
+    "scs==3.2.11",
+    "numba==0.65.0",
+    "llvmlite==0.47.0",
+    "pandas==3.0.2",
+    "joblib==1.5.3",
+    "tqdm==4.67.3",
+    "gurobipy==13.0.1",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/fair_pagerank"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM"]
